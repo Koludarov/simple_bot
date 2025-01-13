@@ -1,0 +1,5 @@
+export enum TelegramState {
+  NO_ID = 'NO_ID',
+  WAITING_FOR_ID = 'WAITING_FOR_ID',
+  WAITING_FOR_APPROVE = 'WAITING_FOR_APPROVE',
+}

@@ -1,0 +1,18 @@
+version: "3.7"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    command: node dist/src/main
+    environment:
+    depends_on:
+      - db
+
+    env_file:
+      - .env
+    networks:
+      - app-network
