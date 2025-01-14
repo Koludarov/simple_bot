@@ -18,17 +18,17 @@ import { GlobalExceptionFilter } from './utils/filter';
       isGlobal: true,
       load: [config],
     }),
-    // MongooseModule.forRootAsync({
-    //   inject: [ConfigService],
-    //   useFactory: (configService: ConfigService) => ({
-    //     uri: configService.getOrThrow('MONGO_URI'),
-    //   }),
-    // }),
+    MongooseModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        uri: configService.getOrThrow('MONGO_URI'),
+      }),
+    }),
     HealthModule,
     TelegramUpdatesModule,
     LeadBotModule,
     LeadHandlersModule,
-    // LeadsModule,
+    LeadsModule,
   ],
   providers: [
     {

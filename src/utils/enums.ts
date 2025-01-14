@@ -1,4 +1,4 @@
 export enum Geo {
-  eng = 'Eng',
-  ru = 'Ru',
+  en = 'en',
+  ru = 'ru',
 }
