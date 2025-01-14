@@ -76,11 +76,12 @@ export class LeadHandlersService implements OnModuleInit {
     await this.leadsService.updateByTelegramId(lead);
   }
 
-  async savePicture(photo: Message['photo'], name: string, { isAdmin, state }: ILead): Promise<void> {
+  async savePicture(photo: Message['photo'], name: string, { telegramId, isAdmin, state }: ILead): Promise<void> {
     if (isAdmin && state !== TelegramState.UPLOAD) return;
     // await this.getMessageIdAndDelete(telegramId);
     const bestPhoto = this.getBestResolutionPhoto(photo);
     await this.picturesService.create(name, bestPhoto);
+    await this.bot.sendMessageAndKeyboard(telegramId, `${name} saved`);
     // await this.sendDescriptionMessage(telegramId);
   }
 
