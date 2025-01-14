@@ -35,7 +35,6 @@ export class LeadHandlersService implements OnModuleInit {
 
   async handleMessage(message: Message, lead: ILead) {
     try {
-      console.log(message, message?.photo);
       if (message?.photo) {
         return this.savePicture(message.photo, message.caption, lead);
       }

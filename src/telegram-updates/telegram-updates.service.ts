@@ -18,7 +18,7 @@ export class TelegramUpdatesService {
     const { from } = message || callback_query;
     const { id: telegramId, username, first_name, last_name } = from;
     const lead = await this.leadsService.getByTelegramId(telegramId);
-    console.log(lead);
+
     if (message && !lead) {
       await this.leadHandlersService.handleStart(telegramId, username, first_name, last_name);
       return;

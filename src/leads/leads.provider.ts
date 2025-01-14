@@ -12,7 +12,6 @@ export class LeadsProvider {
   }
 
   async updateByTelegramId(telegramId: number, lead: Omit<ILead, 'telegramId'>): Promise<ILead> {
-    console.log(lead, 'updateByTelegramId');
     return await this.leadsModel.findOneAndUpdate({ telegramId }, lead, { new: true });
   }
 
@@ -25,7 +24,6 @@ export class LeadsProvider {
   }
 
   async updateTelegramStateByTelegramId(telegramId: number, state: string): Promise<ILead> {
-    console.log(state, 'updateByTelegramIdstate');
     return await this.leadsModel.findOneAndUpdate({ telegramId }, { state }, { new: true });
   }
 }
