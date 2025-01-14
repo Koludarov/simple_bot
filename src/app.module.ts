@@ -3,12 +3,14 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
 import { MongooseModule } from '@nestjs/mongoose';
 
+import { BotModule } from './bot/bot.module';
 import config from './configuration/config';
 import { HealthModule } from './health/health.module';
-import { LeadBotModule } from './lead-bot/lead-bot.module';
+import { ImagesModule } from './images/images.module';
 import { LeadHandlersModule } from './lead-bot-handlers/lead-bot-handlers.module';
 import { LeadsModule } from './leads/leads.module';
 import { LoggerMiddleware } from './logger.middleware';
+import { PicturesModule } from './pictures/pictures.module';
 import { TelegramUpdatesModule } from './telegram-updates/telegram-updates.module';
 import { GlobalExceptionFilter } from './utils/filter';
 
@@ -26,9 +28,11 @@ import { GlobalExceptionFilter } from './utils/filter';
     }),
     HealthModule,
     TelegramUpdatesModule,
-    LeadBotModule,
+    BotModule,
     LeadHandlersModule,
     LeadsModule,
+    PicturesModule,
+    ImagesModule,
   ],
   providers: [
     {

@@ -4,13 +4,13 @@ import { ConfigService } from '@nestjs/config';
 import * as TelegramBot from 'node-telegram-bot-api';
 import { firstValueFrom } from 'rxjs';
 
-import { sideMenu } from './lead-bot.constants';
+import { sideMenu } from './bot.constants';
 import { ParseBotModes } from '../common/parse-bot.enum';
 
 @Injectable()
-export class LeadBotProvider implements OnModuleInit {
+export class BotProvider implements OnModuleInit {
   private readonly bot: TelegramBot;
-  private readonly logger: LoggerService = new Logger(LeadBotProvider.name);
+  private readonly logger: LoggerService = new Logger(BotProvider.name);
   private readonly botToken: string;
   private readonly allowedBotUpdates: string[] = ['message', 'callback_query'];
   private readonly telegramBotApiUrl = 'https://api.telegram.org/bot';
@@ -21,7 +21,7 @@ export class LeadBotProvider implements OnModuleInit {
   ) {
     this.botToken = this.configService.get('LEADS_BOT_TOKEN');
     this.bot = new TelegramBot(this.botToken, { polling: false });
-    this.bot.setMyCommands([{ command: '/stats', description: sideMenu.stats }]);
+    this.bot.setMyCommands([{ command: '/random', description: sideMenu.random }]);
   }
 
   async sendMessageWithKeyboard(
@@ -41,15 +41,14 @@ export class LeadBotProvider implements OnModuleInit {
 
   async sendPhotoMessage(
     chatId: number,
-    imageLink: string,
+    photoBuffer: Buffer,
     text: string,
-    inline_keyboard: TelegramBot.InlineKeyboardMarkup,
+    keyboard: TelegramBot.InlineKeyboardMarkup = { inline_keyboard: [] },
   ): Promise<TelegramBot.Message> {
     try {
-      return await this.bot.sendPhoto(chatId, imageLink, {
+      return await this.bot.sendPhoto(chatId, photoBuffer, {
         caption: text,
-        reply_markup: inline_keyboard,
-        parse_mode: ParseBotModes.HTML,
+        reply_markup: keyboard,
       });
     } catch (error) {
       this.logger.error(error.toString());
@@ -87,6 +86,15 @@ export class LeadBotProvider implements OnModuleInit {
         chat_id: telegramId,
         message_id: messageId,
       });
+    } catch (error) {
+      this.logger.error(error.toString());
+    }
+  }
+
+  async loadPhoto(photoId: string): Promise<TelegramBot.File> {
+    try {
+      const file = await this.bot.getFile(photoId);
+      return file;
     } catch (error) {
       this.logger.error(error.toString());
     }

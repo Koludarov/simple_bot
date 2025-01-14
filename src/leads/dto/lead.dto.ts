@@ -1,6 +1,5 @@
 import { IsEnum, IsInt, Min } from 'class-validator';
 
-import { Labels } from '../../common/labels-types';
 import { TelegramState } from '../../common/telegram-states';
 import { Geo } from '../../utils/enums';
 
@@ -13,10 +12,7 @@ export class LeadDto {
   telegramId: number;
 
   @IsEnum(TelegramState)
-  telegramState: TelegramState;
-
-  @IsEnum(Labels)
-  label: Labels;
+  state: TelegramState;
 
   @IsEnum(Geo)
   geo: Geo;

@@ -28,9 +28,9 @@ export class LeadsService {
     return updatedLead;
   }
 
-  async updateTelegramStateByTelegramId(telegramId: number, telegramState: string): Promise<ILead> {
+  async updateTelegramStateByTelegramId(telegramId: number, state: string): Promise<ILead> {
     this.logger.log(`Starting working function updateByTelegramId Lead telegramId: ${telegramId}`);
-    const updatedLead = await this.leadsProvider.updateTelegramStateByTelegramId(telegramId, telegramState);
+    const updatedLead = await this.leadsProvider.updateTelegramStateByTelegramId(telegramId, state);
     this.logger.log(`Ended working function updateByTelegramId Lead telegramId: ${telegramId}`);
     return updatedLead;
   }

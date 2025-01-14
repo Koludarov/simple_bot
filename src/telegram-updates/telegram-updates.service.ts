@@ -31,9 +31,8 @@ export class TelegramUpdatesService {
   }
 
   async handleLeadMessage(message: Message, lead: ILead) {
-    const { text } = message;
     this.logger.log(`Update message: ${JSON.stringify(message)}`);
-    await this.leadHandlersService.handleTextMessage(text, lead);
+    await this.leadHandlersService.handleMessage(message, lead);
   }
 
   async handleLeadCallBack(callbackQuery: CallbackQuery, lead: ILead) {

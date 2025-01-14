@@ -1,11 +1,10 @@
-import { Labels } from '../common/labels-types';
 import { TelegramState } from '../common/telegram-states';
 import { Geo } from '../utils/enums';
 
 export interface ILead {
   telegramId: number;
-  label: Labels;
-  telegramState: TelegramState;
+  state: TelegramState;
+  isAdmin: boolean;
   geo: Geo;
   username?: string;
   firstname?: string;

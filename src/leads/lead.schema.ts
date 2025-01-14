@@ -2,7 +2,6 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 
 import { ILead } from './lead.interface';
-import { Labels } from '../common/labels-types';
 import { TelegramState } from '../common/telegram-states';
 import { Geo } from '../utils/enums';
 
@@ -13,14 +12,14 @@ export class Lead implements ILead {
   @Prop({ required: true, unique: true })
   telegramId: number;
 
-  @Prop({ required: true, default: TelegramState.NO_ID })
-  telegramState: TelegramState;
-
-  @Prop({ required: true, default: Labels.MAIN })
-  label: Labels;
-
   @Prop({ required: true, default: Geo.ru })
   geo: Geo;
+
+  @Prop({ required: true, default: TelegramState.MAIN })
+  state: TelegramState;
+
+  @Prop({ default: false })
+  isAdmin: boolean;
 
   @Prop()
   username?: string;

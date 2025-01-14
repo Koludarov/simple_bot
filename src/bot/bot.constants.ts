@@ -1,6 +1,6 @@
-const STATS = 'My stats';
+const RANDOM = 'Random photo';
 export const sideMenu = {
-  stats: STATS,
+  random: RANDOM,
 };
 
 export const VIDEO_EXTENSION = 'mp4';
