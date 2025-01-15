@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import * as TelegramBot from 'node-telegram-bot-api';
 import { firstValueFrom } from 'rxjs';
 
-import { sideMenu } from './bot.constants';
+import { commands, sideMenu } from './bot.constants';
 import { ParseBotModes } from '../common/parse-bot.enum';
 
 @Injectable()
@@ -21,7 +21,10 @@ export class BotProvider implements OnModuleInit {
   ) {
     this.botToken = this.configService.get('LEADS_BOT_TOKEN');
     this.bot = new TelegramBot(this.botToken, { polling: false });
-    this.bot.setMyCommands([{ command: '/random', description: sideMenu.random }]);
+    this.bot.setMyCommands([
+      { command: commands.random, description: sideMenu.random },
+      { command: commands.parking, description: sideMenu.parking },
+    ]);
   }
 
   async sendMessageWithKeyboard(

@@ -1,9 +1,3 @@
-const stats = '/stats';
-
-export const commands = {
-  stats,
-};
-
 export const CHOOSE_LANGUAGE = 'Choose your language:';
 
 const greeting = (name: string) =>

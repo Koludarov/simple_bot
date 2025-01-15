@@ -1,6 +1,8 @@
+import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger, LoggerService, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InlineKeyboardMarkup, Message, PhotoSize } from 'node-telegram-bot-api';
+import { firstValueFrom } from 'rxjs';
 
 import { flowMessages } from './lead-bot-handlers.constants';
 import { BotService } from '../bot/bot.service';
@@ -11,17 +13,19 @@ import { LeadsService } from '../leads/leads.service';
 import { PicturesService } from '../pictures/pictures.service';
 import { createButtonsArray } from '../utils/create-inline-keyboard';
 import { Geo } from '../utils/enums';
+import { commands } from '../bot/bot.constants';
 
 @Injectable()
 export class LeadHandlersService implements OnModuleInit {
   private readonly logger: LoggerService = new Logger(LeadHandlersService.name);
-  // private readonly defaultTelegramId = this.configService.getOrThrow('DEFAULT_TG_ID');
+  private readonly defaultTPlates = this.configService.getOrThrow('DEFAULT_PLATES');
 
   constructor(
     private readonly bot: BotService,
     private readonly leadsService: LeadsService,
     private readonly imagesService: ImagesService,
     private readonly picturesService: PicturesService,
+    private readonly httpService: HttpService,
     private configService: ConfigService,
   ) {}
 
@@ -54,10 +58,15 @@ export class LeadHandlersService implements OnModuleInit {
       return;
     }
 
-    if (text === '/random') {
+    if (text === commands.random) {
       const { fileId, name } = await this.picturesService.getRandomPicture();
       await this.sendPhotoMessage(telegramId, fileId, name);
       return;
+    }
+
+    if (text.startsWith(commands.parking)) {
+      const plates = text.split(' ')[1];
+      return await this.checkParking(lead, plates);
     }
 
     if (text === '/main') {
@@ -83,6 +92,36 @@ export class LeadHandlersService implements OnModuleInit {
     await this.picturesService.create(name, bestPhoto);
     await this.bot.sendMessageAndKeyboard(telegramId, `${name} saved`);
     // await this.sendDescriptionMessage(telegramId);
+  }
+
+  async checkParking({ telegramId, isAdmin }: ILead, inputPlates?: string): Promise<void> {
+    if (!inputPlates && !isAdmin) {
+      await this.bot.sendMessageAndKeyboard(
+        telegramId,
+        '<b>Необходимо отправить в формате:</b> <i>/parking NS000AA</i>',
+      );
+      return;
+    }
+    const plates = inputPlates ? inputPlates : this.defaultTPlates;
+    try {
+      const { data } = await firstValueFrom(
+        this.httpService.get(`https://portal.parkingns.rs/portal/auth/checkPPK?platePr=${plates}`, {
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+            Accept: 'application/json, text/plain, */*',
+          },
+        }),
+      );
+      const answer = data.length
+        ? `<b>Список билетов за парковку(кол-во ${data.length}):</b>\n${JSON.stringify(data)}`
+        : '<b>Билетов на парковку нет</b>';
+
+      await this.bot.sendMessageAndKeyboard(telegramId, answer);
+    } catch (error) {
+      this.logger.log(`Error sending request: ${error}`);
+    }
+    return;
   }
 
   private async sendPhotoMessage(

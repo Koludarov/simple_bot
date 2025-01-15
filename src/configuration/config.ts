@@ -12,4 +12,5 @@ export default (): any =>
     WEBHOOK_HOST: process.env.WEBHOOK_HOST,
     MONGO_URI: process.env.MONGO_URI,
     DEFAULT_LANGUAGE: process.env.DEFAULT_LANGUAGE,
+    DEFAULT_PLATES: process.env.DEFAULT_PLATES,
   }) as const;
