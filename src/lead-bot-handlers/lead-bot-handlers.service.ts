@@ -5,6 +5,7 @@ import { InlineKeyboardMarkup, Message, PhotoSize } from 'node-telegram-bot-api'
 import { firstValueFrom } from 'rxjs';
 
 import { flowMessages } from './lead-bot-handlers.constants';
+import { commands } from '../bot/bot.constants';
 import { BotService } from '../bot/bot.service';
 import { TelegramState } from '../common/telegram-states';
 import { ImagesService } from '../images/images.service';
@@ -13,7 +14,6 @@ import { LeadsService } from '../leads/leads.service';
 import { PicturesService } from '../pictures/pictures.service';
 import { createButtonsArray } from '../utils/create-inline-keyboard';
 import { Geo } from '../utils/enums';
-import { commands } from '../bot/bot.constants';
 
 @Injectable()
 export class LeadHandlersService implements OnModuleInit {
