@@ -13,4 +13,6 @@ export default (): any =>
     MONGO_URI: process.env.MONGO_URI,
     DEFAULT_LANGUAGE: process.env.DEFAULT_LANGUAGE,
     DEFAULT_PLATES: process.env.DEFAULT_PLATES,
+    GOOGLE_SEARCH_API: process.env.GOOGLE_SEARCH_API,
+    GOOGLE_ENGINE_ID: process.env.GOOGLE_ENGINE_ID,
   }) as const;

@@ -8,9 +8,9 @@ export class LeadsService {
   private readonly logger: LoggerService = new Logger(LeadsService.name);
   constructor(private readonly leadsProvider: LeadsProvider) {}
 
-  // async getAll(offset: number, limit: number): Promise<Lead[]> {
-  //   return await this.leadRepository.getAll(offset, limit);
-  // }
+  async getAllNonSmokers(): Promise<ILead[]> {
+    return await this.leadsProvider.getAllNonSmokers();
+  }
 
   async create(telegramId: number, username?: string, firstname?: string, lastname?: string): Promise<ILead> {
     this.logger.log(`Starting working function create Lead: telegramId - ${telegramId}`);

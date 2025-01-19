@@ -30,6 +30,9 @@ export class Lead implements ILead {
   @Prop()
   lastname?: string;
 
+  @Prop()
+  smokingEndDate?: Date;
+
   createdAt: Date;
   updatedAt: Date;
 }

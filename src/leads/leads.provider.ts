@@ -7,6 +7,10 @@ import { Lead, LeadDocument } from './lead.schema';
 export class LeadsProvider {
   constructor(@InjectModel(Lead.name) private leadsModel: Model<LeadDocument>) {}
 
+  async getAllNonSmokers(): Promise<Lead[]> {
+    return await this.leadsModel.find();
+  }
+
   async create(telegramId: number, username?: string, firstname?: string, lastname?: string): Promise<ILead> {
     return await this.leadsModel.create({ telegramId, username, firstname, lastname });
   }

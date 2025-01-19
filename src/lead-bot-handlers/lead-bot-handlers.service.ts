@@ -1,13 +1,15 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger, LoggerService, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { InlineKeyboardMarkup, Message, PhotoSize } from 'node-telegram-bot-api';
 import { firstValueFrom } from 'rxjs';
 
-import { flowMessages } from './lead-bot-handlers.constants';
+import { dailySmokingPrice, flowMessages, messages } from './lead-bot-handlers.constants';
 import { commands } from '../bot/bot.constants';
 import { BotService } from '../bot/bot.service';
 import { TelegramState } from '../common/telegram-states';
+import { FactsService } from '../facts/facts.service';
 import { ImagesService } from '../images/images.service';
 import { ILead } from '../leads/lead.interface';
 import { LeadsService } from '../leads/leads.service';
@@ -19,22 +21,36 @@ import { Geo } from '../utils/enums';
 export class LeadHandlersService implements OnModuleInit {
   private readonly logger: LoggerService = new Logger(LeadHandlersService.name);
   private readonly defaultTPlates = this.configService.getOrThrow('DEFAULT_PLATES');
+  private readonly googleEngineId = this.configService.getOrThrow('GOOGLE_ENGINE_ID');
+  private readonly googleSearchApiKey = this.configService.getOrThrow('GOOGLE_SEARCH_API');
 
   constructor(
     private readonly bot: BotService,
     private readonly leadsService: LeadsService,
     private readonly imagesService: ImagesService,
     private readonly picturesService: PicturesService,
+    private readonly factsService: FactsService,
     private readonly httpService: HttpService,
     private configService: ConfigService,
   ) {}
 
   async onModuleInit() {}
 
+  @Cron(CronExpression.EVERY_DAY_AT_9AM)
+  async sendDailyNote() {
+    const leads = await this.leadsService.getAllNonSmokers();
+    for (const lead of leads) {
+      const daysWithoutSmoking = this.getDaysWithoutSmoking(lead);
+      const encodedFact = await this.factsService.getByDay(daysWithoutSmoking);
+      const decodedFact = Buffer.from(encodedFact.task, 'base64').toString('utf-8');
+      await this.bot.sendMessageAndKeyboard(lead.telegramId, decodedFact);
+    }
+  }
+
   async handleStart(telegramId: number, username?: string, firstname?: string, lastname?: string) {
     await this.leadsService.create(telegramId, username, firstname, lastname);
-    const keyboard = createButtonsArray(['English', 'Русский'], ['en', 'ru']);
-    await this.bot.sendMessageAndKeyboard(telegramId, flowMessages.greeting(username), keyboard);
+    await this.bot.sendMessageAndKeyboard(telegramId, flowMessages.greeting(username));
+    await this.sendChooseLanguageMessage(telegramId);
   }
 
   async handleMessage(message: Message, lead: ILead) {
@@ -64,6 +80,28 @@ export class LeadHandlersService implements OnModuleInit {
       return;
     }
 
+    if (text === commands.language) {
+      await this.sendChooseLanguageMessage(telegramId);
+      return;
+    }
+
+    if (text === commands.endSmoking) {
+      await this.handleEndSmoking(lead);
+      return;
+    }
+
+    if (text === commands.progress) {
+      await this.handleProgress(lead);
+      return;
+    }
+
+    if (text.startsWith(commands.money)) {
+      const splitted = text.split(' ');
+      const query = splitted[1] ? splitted.slice(1).join('') : undefined;
+      await this.handleMoney(lead, query);
+      return;
+    }
+
     if (text.startsWith(commands.parking)) {
       const plates = text.split(' ')[1];
       return await this.checkParking(lead, plates);
@@ -80,26 +118,20 @@ export class LeadHandlersService implements OnModuleInit {
   async handleCallbackQuery(data: string, lead: ILead, messageId: number): Promise<void> {
     const { telegramId } = lead;
     await this.bot.deleteMessage(telegramId, messageId);
-    await this.bot.sendMessageAndKeyboard(telegramId, 'Callback');
     lead.geo = data as Geo;
     await this.leadsService.updateByTelegramId(lead);
   }
 
   async savePicture(photo: Message['photo'], name: string, { telegramId, isAdmin, state }: ILead): Promise<void> {
     if (isAdmin && state !== TelegramState.UPLOAD) return;
-    // await this.getMessageIdAndDelete(telegramId);
     const bestPhoto = this.getBestResolutionPhoto(photo);
     await this.picturesService.create(name, bestPhoto);
     await this.bot.sendMessageAndKeyboard(telegramId, `${name} saved`);
-    // await this.sendDescriptionMessage(telegramId);
   }
 
-  async checkParking({ telegramId, isAdmin }: ILead, inputPlates?: string): Promise<void> {
+  async checkParking({ telegramId, isAdmin, geo }: ILead, inputPlates?: string): Promise<void> {
     if (!inputPlates && !isAdmin) {
-      await this.bot.sendMessageAndKeyboard(
-        telegramId,
-        '<b>Необходимо отправить в формате:</b> <i>/parking NS000AA</i>',
-      );
+      await this.bot.sendMessageAndKeyboard(telegramId, messages.errorParkingInput[geo]);
       return;
     }
     const plates = inputPlates ? inputPlates : this.defaultTPlates;
@@ -113,9 +145,7 @@ export class LeadHandlersService implements OnModuleInit {
           },
         }),
       );
-      const answer = data.length
-        ? `<b>Список билетов за парковку(кол-во ${data.length}):</b>\n${JSON.stringify(data)}`
-        : '<b>Билетов на парковку нет</b>';
+      const answer = data.length ? messages.resultNegativeParking[geo](data) : messages.resultPositiveParking[geo];
 
       await this.bot.sendMessageAndKeyboard(telegramId, answer);
     } catch (error) {
@@ -134,6 +164,87 @@ export class LeadHandlersService implements OnModuleInit {
     const photo = await this.imagesService.getTelegramImageBuffer(file.file_path);
 
     return await this.bot.sendPhotoMessage(telegramId, photo, text, keyboard);
+  }
+
+  private async sendChooseLanguageMessage(telegramId: number): Promise<void> {
+    const keyboard = createButtonsArray(['English', 'Русский'], ['en', 'ru']);
+    await this.bot.sendMessageAndKeyboard(telegramId, flowMessages.chooseLanguage, keyboard);
+  }
+
+  private async handleEndSmoking(lead: ILead): Promise<void> {
+    const { telegramId } = lead;
+    lead.smokingEndDate = new Date();
+    await this.leadsService.updateByTelegramId(lead);
+    await this.bot.sendMessageAndKeyboard(telegramId, flowMessages.endSmokingMessage);
+  }
+
+  private async handleProgress(lead: ILead): Promise<void> {
+    const { telegramId } = lead;
+    const daysWithoutSmoking = this.getDaysWithoutSmoking(lead);
+    if (daysWithoutSmoking === undefined) {
+      await this.bot.sendMessageAndKeyboard(telegramId, flowMessages.notStartedMessage);
+      return;
+    }
+    await this.bot.sendMessageAndKeyboard(telegramId, flowMessages.progressMessage(daysWithoutSmoking));
+    if (daysWithoutSmoking > 0) {
+      const encodedFact = await this.factsService.getByDay(daysWithoutSmoking);
+      const decodedFact = Buffer.from(encodedFact.message, 'base64').toString('utf-8');
+      await this.bot.sendMessageAndKeyboard(telegramId, decodedFact);
+    }
+  }
+
+  private async handleMoney(lead: ILead, query: string = 'buy smart devices'): Promise<void> {
+    const { telegramId } = lead;
+    const daysWithoutSmoking = this.getDaysWithoutSmoking(lead);
+    if (daysWithoutSmoking === undefined) {
+      await this.bot.sendMessageAndKeyboard(telegramId, flowMessages.notStartedMessage);
+      return;
+    }
+    const moneySaved = daysWithoutSmoking * dailySmokingPrice;
+    const products = await this.searchProductsOnGoogle(query, moneySaved);
+
+    let response = flowMessages.moneyMessage(moneySaved);
+
+    products.forEach((product) => {
+      response += `- <a href='${product.link}'>${product.title}</a>\n  ${product.snippet}\n\n`;
+    });
+    await this.bot.sendMessageAndKeyboard(telegramId, response);
+  }
+
+  async searchProductsOnGoogle(query: string, budget: number): Promise<any[]> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get('https://www.googleapis.com/customsearch/v1', {
+          params: {
+            key: this.googleSearchApiKey,
+            cx: this.googleEngineId,
+            q: `${query} up to ${Math.floor(budget / 117.5)}€`,
+            num: 5,
+          },
+        }),
+      );
+
+      // Обработка результатов
+      return response.data.items.map((item: any) => ({
+        title: item.title,
+        link: item.link,
+        snippet: item.snippet,
+      }));
+    } catch (error) {
+      this.logger.error('Ошибка при вызове Google Custom Search API:', error);
+      return [];
+    }
+  }
+
+  private getDaysWithoutSmoking(lead: ILead): number {
+    const { smokingEndDate } = lead;
+    if (!smokingEndDate) {
+      return;
+    }
+
+    const startDate = new Date(smokingEndDate);
+    const now = new Date();
+    return Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
   }
 
   private getBestResolutionPhoto(photos: Message['photo']): PhotoSize['file_id'] {

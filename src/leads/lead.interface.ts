@@ -9,6 +9,7 @@ export interface ILead {
   username?: string;
   firstname?: string;
   lastname?: string;
+  smokingEndDate?: Date;
   createdAt?: Date;
   updatedAt?: Date;
 }

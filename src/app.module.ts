@@ -2,9 +2,11 @@ import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/c
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
 import { MongooseModule } from '@nestjs/mongoose';
+import { ScheduleModule } from '@nestjs/schedule';
 
 import { BotModule } from './bot/bot.module';
 import config from './configuration/config';
+import { FactsModule } from './facts/facts.module';
 import { HealthModule } from './health/health.module';
 import { ImagesModule } from './images/images.module';
 import { LeadHandlersModule } from './lead-bot-handlers/lead-bot-handlers.module';
@@ -33,6 +35,8 @@ import { GlobalExceptionFilter } from './utils/filter';
     LeadsModule,
     PicturesModule,
     ImagesModule,
+    FactsModule,
+    ScheduleModule.forRoot(),
   ],
   providers: [
     {

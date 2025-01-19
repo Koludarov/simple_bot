@@ -1,4 +1,4 @@
-import { IsEnum, IsInt, Min } from 'class-validator';
+import { IsDate, IsEnum, IsInt, Min } from 'class-validator';
 
 import { TelegramState } from '../../common/telegram-states';
 import { Geo } from '../../utils/enums';
@@ -16,4 +16,7 @@ export class LeadDto {
 
   @IsEnum(Geo)
   geo: Geo;
+
+  @IsDate()
+  smokingEndDate: Date;
 }
