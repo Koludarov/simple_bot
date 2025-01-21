@@ -42,9 +42,9 @@ export class LeadHandlersService implements OnModuleInit {
     const leads = await this.leadsService.getAllNonSmokers();
     for (const lead of leads) {
       const daysWithoutSmoking = this.getDaysWithoutSmoking(lead);
-      const encodedFact = await this.factsService.getByDay(daysWithoutSmoking);
-      const decodedFact = Buffer.from(encodedFact.task, 'base64').toString('utf-8');
-      await this.bot.sendMessageAndKeyboard(lead.telegramId, decodedFact);
+      const fact = await this.factsService.getByDay(daysWithoutSmoking);
+      const decodedTask = Buffer.from(fact.task, 'base64').toString('utf-8');
+      await this.bot.sendMessageAndKeyboard(lead.telegramId, decodedTask);
     }
   }
 
