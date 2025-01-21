@@ -44,7 +44,8 @@ export class LeadHandlersService implements OnModuleInit {
       const daysWithoutSmoking = this.getDaysWithoutSmoking(lead);
       const fact = await this.factsService.getByDay(daysWithoutSmoking);
       const decodedTask = Buffer.from(fact.task, 'base64').toString('utf-8');
-      await this.bot.sendMessageAndKeyboard(lead.telegramId, decodedTask);
+      const memUrl = await this.getRandomMeme();
+      await this.bot.sendMessageAndKeyboard(lead.telegramId, `${decodedTask}\n\n<a href='${memUrl}'>мем</a>`);
     }
   }
 
@@ -153,6 +154,8 @@ export class LeadHandlersService implements OnModuleInit {
       );
       const answer = data.length ? messages.resultNegativeParking[geo](data) : messages.resultPositiveParking[geo];
 
+      const memUrl = await this.getRandomMeme();
+      await this.bot.sendMessageAndKeyboard(telegramId, `haha\n\n<a href='${memUrl}'>мем</a>`);
       await this.bot.sendMessageAndKeyboard(telegramId, answer);
     } catch (error) {
       this.logger.log(`Error sending request: ${error}`);
@@ -269,6 +272,31 @@ export class LeadHandlersService implements OnModuleInit {
     const count = lead.desireSmokingInc[today];
     const chartUrl = generateSmokingDesireChartUrl(lead.desireSmokingInc);
     await this.bot.sendMessageAndKeyboard(lead.telegramId, `${flowMessages.countDesire(count, chartUrl)}`);
+  }
+
+  async getRandomMeme(): Promise<string> {
+    const queries = ['anti_smoking', 'smoking', 'smoking_kills', 'vape', 'vaping'];
+
+    const randomIndex = Math.floor(Math.random() * queries.length);
+
+    const url = `https://www.reddit.com/r/memes/search.json?q=${queries[randomIndex]}&limit=250`;
+
+    try {
+      const response = await firstValueFrom(this.httpService.get(url));
+
+      const posts = response.data.data.children;
+
+      const imagePosts = posts.filter((post: any) => post.data.post_hint === 'image' && post.data.url);
+
+      if (imagePosts.length === 0) {
+        return 'Не удалось найти мемы о курении.';
+      }
+
+      const randomPost = imagePosts[Math.floor(Math.random() * imagePosts.length)];
+      return randomPost.data.url;
+    } catch (error) {
+      this.logger.error('Ошибка при получении мемов:', error);
+    }
   }
 
   private getBestResolutionPhoto(photos: Message['photo']): PhotoSize['file_id'] {
