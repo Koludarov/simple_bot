@@ -22,13 +22,13 @@ export class BotProvider implements OnModuleInit {
     this.botToken = this.configService.get('LEADS_BOT_TOKEN');
     this.bot = new TelegramBot(this.botToken, { polling: false });
     this.bot.setMyCommands([
-      { command: commands.language, description: sideMenu.LANGUAGE },
-      { command: commands.random, description: sideMenu.RANDOM },
-      { command: commands.parking, description: sideMenu.PARKING },
-      { command: commands.endSmoking, description: sideMenu.END_SMOKING },
+      { command: commands.want_smoke, description: sideMenu.WANT_SMOKE },
       { command: commands.progress, description: sideMenu.PROGRESS },
       { command: commands.money, description: sideMenu.MONEY },
-      { command: commands.want_smoke, description: sideMenu.WANT_SMOKE },
+      { command: commands.endSmoking, description: sideMenu.END_SMOKING },
+      { command: commands.random, description: sideMenu.RANDOM },
+      { command: commands.parking, description: sideMenu.PARKING },
+      { command: commands.language, description: sideMenu.LANGUAGE },
     ]);
   }
 
