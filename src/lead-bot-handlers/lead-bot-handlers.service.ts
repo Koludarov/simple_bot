@@ -145,6 +145,10 @@ export class LeadHandlersService implements OnModuleInit {
       await this.bot.sendMessageAndKeyboard(telegramId, messages.errorParkingInput[geo]);
       return;
     }
+
+    const memUrl = await this.getRandomMeme();
+    await this.bot.sendMessageAndKeyboard(telegramId, `haha\n\n<a href='${memUrl}'>мем</a>`);
+
     const plates = inputPlates ? inputPlates : this.defaultTPlates;
     try {
       const { data } = await firstValueFrom(
@@ -158,8 +162,6 @@ export class LeadHandlersService implements OnModuleInit {
       );
       const answer = data.length ? messages.resultNegativeParking[geo](data) : messages.resultPositiveParking[geo];
 
-      const memUrl = await this.getRandomMeme();
-      await this.bot.sendMessageAndKeyboard(telegramId, `haha\n\n<a href='${memUrl}'>мем</a>`);
       await this.bot.sendMessageAndKeyboard(telegramId, answer);
     } catch (error) {
       this.logger.log(`Error sending request: ${error}`);
