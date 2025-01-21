@@ -20,6 +20,9 @@ const countDesire = (count: number, chartUrl: string) =>
 
 const progressFact = (decodedFact: string, chartUrl: string) => `${decodedFact}\n\n<a href='${chartUrl}}'>Прогресс</a>`;
 
+const moreThanYear = (daysWithoutSmoking: number, memUrl: string) =>
+  `Ты не сдаешься и идешь вперед уже ${daysWithoutSmoking} день🥇\n\n<a href='${memUrl}'>мем</a>`;
+
 export const flowMessages = {
   greeting,
   chooseLanguage,
@@ -29,6 +32,7 @@ export const flowMessages = {
   endSmokingMessage,
   countDesire,
   progressFact,
+  moreThanYear,
 };
 
 const errorParkingInput = {

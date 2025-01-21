@@ -42,9 +42,13 @@ export class LeadHandlersService implements OnModuleInit {
     const leads = await this.leadsService.getAllNonSmokers();
     for (const lead of leads) {
       const daysWithoutSmoking = this.getDaysWithoutSmoking(lead);
+      const memUrl = await this.getRandomMeme();
+      if (daysWithoutSmoking > 365) {
+        await this.bot.sendMessageAndKeyboard(lead.telegramId, flowMessages.moreThanYear(daysWithoutSmoking, memUrl));
+        return;
+      }
       const fact = await this.factsService.getByDay(daysWithoutSmoking);
       const decodedTask = Buffer.from(fact.task, 'base64').toString('utf-8');
-      const memUrl = await this.getRandomMeme();
       await this.bot.sendMessageAndKeyboard(lead.telegramId, `${decodedTask}\n\n<a href='${memUrl}'>мем</a>`);
     }
   }
@@ -190,10 +194,18 @@ export class LeadHandlersService implements OnModuleInit {
   private async handleProgress(lead: ILead): Promise<void> {
     const { telegramId } = lead;
     const daysWithoutSmoking = this.getDaysWithoutSmoking(lead);
+
     if (daysWithoutSmoking === undefined) {
       await this.bot.sendMessageAndKeyboard(telegramId, flowMessages.notStartedMessage);
       return;
     }
+
+    const memUrl = await this.getRandomMeme();
+    if (daysWithoutSmoking > 365) {
+      await this.bot.sendMessageAndKeyboard(lead.telegramId, flowMessages.moreThanYear(daysWithoutSmoking, memUrl));
+      return;
+    }
+
     await this.bot.sendMessageAndKeyboard(telegramId, flowMessages.progressMessage(daysWithoutSmoking));
     if (daysWithoutSmoking > 0) {
       const encodedFact = await this.factsService.getByDay(daysWithoutSmoking);
