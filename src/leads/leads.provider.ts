@@ -30,4 +30,18 @@ export class LeadsProvider {
   async updateTelegramStateByTelegramId(telegramId: number, state: string): Promise<ILead> {
     return await this.leadsModel.findOneAndUpdate({ telegramId }, { state }, { new: true });
   }
+
+  async incrementDesireSmoking(telegramId: number): Promise<ILead> {
+    const today = new Date().toISOString().split('T')[0];
+
+    const lead = await this.leadsModel.findOneAndUpdate(
+      { telegramId },
+      {
+        $inc: { [`desireSmokingInc.${today}`]: 1 },
+      },
+      { new: true, upsert: true },
+    );
+
+    return lead;
+  }
 }

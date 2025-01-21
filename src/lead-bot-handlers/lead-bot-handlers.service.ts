@@ -14,6 +14,7 @@ import { ImagesService } from '../images/images.service';
 import { ILead } from '../leads/lead.interface';
 import { LeadsService } from '../leads/leads.service';
 import { PicturesService } from '../pictures/pictures.service';
+import { generateChartUrl, generateSmokingDesireChartUrl } from '../utils/create-chart';
 import { createButtonsArray } from '../utils/create-inline-keyboard';
 import { Geo } from '../utils/enums';
 
@@ -92,6 +93,11 @@ export class LeadHandlersService implements OnModuleInit {
 
     if (text === commands.progress) {
       await this.handleProgress(lead);
+      return;
+    }
+
+    if (text === commands.want_smoke) {
+      await this.handleWantSmokeCommand(lead);
       return;
     }
 
@@ -189,7 +195,8 @@ export class LeadHandlersService implements OnModuleInit {
     if (daysWithoutSmoking > 0) {
       const encodedFact = await this.factsService.getByDay(daysWithoutSmoking);
       const decodedFact = Buffer.from(encodedFact.message, 'base64').toString('utf-8');
-      await this.bot.sendMessageAndKeyboard(telegramId, decodedFact);
+      const chartUrl = generateChartUrl(daysWithoutSmoking);
+      await this.bot.sendMessageAndKeyboard(telegramId, flowMessages.progressFact(decodedFact, chartUrl));
     }
   }
 
@@ -224,7 +231,6 @@ export class LeadHandlersService implements OnModuleInit {
         }),
       );
 
-      // Обработка результатов
       return response.data.items.map((item: any) => ({
         title: item.title,
         link: item.link,
@@ -245,6 +251,24 @@ export class LeadHandlersService implements OnModuleInit {
     const startDate = new Date(smokingEndDate);
     const now = new Date();
     return Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+  }
+
+  async handleWantSmokeCommand(lead: ILead): Promise<void> {
+    const daysWithoutSmoking = this.getDaysWithoutSmoking(lead);
+    if (daysWithoutSmoking === undefined) {
+      await this.bot.sendMessageAndKeyboard(lead.telegramId, flowMessages.notStartedMessage);
+      return;
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+
+    lead.desireSmokingInc[today] = (lead.desireSmokingInc[today] || 0) + 1;
+
+    await this.leadsService.updateByTelegramId(lead);
+
+    const count = lead.desireSmokingInc[today];
+    const chartUrl = generateSmokingDesireChartUrl(lead.desireSmokingInc);
+    await this.bot.sendMessageAndKeyboard(lead.telegramId, `${flowMessages.countDesire(count, chartUrl)}`);
   }
 
   private getBestResolutionPhoto(photos: Message['photo']): PhotoSize['file_id'] {

@@ -1,6 +1,10 @@
 import { TelegramState } from '../common/telegram-states';
 import { Geo } from '../utils/enums';
 
+export interface DesireOfSmoke {
+  [date: string]: number;
+}
+
 export interface ILead {
   telegramId: number;
   state: TelegramState;
@@ -10,6 +14,7 @@ export interface ILead {
   firstname?: string;
   lastname?: string;
   smokingEndDate?: Date;
+  desireSmokingInc: DesireOfSmoke;
   createdAt?: Date;
   updatedAt?: Date;
 }

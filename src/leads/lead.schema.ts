@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 
-import { ILead } from './lead.interface';
+import { DesireOfSmoke, ILead } from './lead.interface';
 import { TelegramState } from '../common/telegram-states';
 import { Geo } from '../utils/enums';
 
@@ -32,6 +32,9 @@ export class Lead implements ILead {
 
   @Prop()
   smokingEndDate?: Date;
+
+  @Prop({ type: Object, default: {} })
+  desireSmokingInc: DesireOfSmoke;
 
   createdAt: Date;
   updatedAt: Date;
