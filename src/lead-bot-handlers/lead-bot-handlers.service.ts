@@ -159,6 +159,8 @@ export class LeadHandlersService implements OnModuleInit {
             'User-Agent':
               'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
             Accept: 'application/json, text/plain, */*',
+            Connection: 'keep-alive',
+            Host: 'portal.parkingns.rs',
           },
         }),
       );
@@ -256,7 +258,7 @@ export class LeadHandlersService implements OnModuleInit {
         snippet: item.snippet,
       }));
     } catch (error) {
-      this.logger.error(`Ошибка при вызове Google Custom Search API: ${error.message}`);
+      this.logger.error(`Error while calling Google Custom Search API: ${error.message}`);
       return [];
     }
   }
@@ -314,13 +316,13 @@ export class LeadHandlersService implements OnModuleInit {
       const imagePosts = posts.filter((post: any) => post.data.post_hint === 'image' && post.data.url);
 
       if (imagePosts.length === 0) {
-        return 'Не удалось найти мемы о курении.';
+        return;
       }
 
       const randomPost = imagePosts[Math.floor(Math.random() * imagePosts.length)];
       return randomPost.data.url;
     } catch (error) {
-      this.logger.error(`Ошибка при получении мемов: ${error.message}`);
+      this.logger.error(`Error while fetching mem : ${error.message}`);
     }
   }
 
@@ -342,10 +344,10 @@ export class LeadHandlersService implements OnModuleInit {
           },
         ),
       );
-      console.log(response);
+
       return response.data.access_token;
     } catch (error) {
-      console.error('Ошибка получения токена доступа:', error.response?.data || error.message);
+      this.logger.error(`Error while getting access token: ${error.response?.data || error.message}`);
       throw error;
     }
   }
