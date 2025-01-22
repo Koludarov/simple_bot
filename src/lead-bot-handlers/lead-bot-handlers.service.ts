@@ -21,11 +21,12 @@ import { Geo } from '../utils/enums';
 @Injectable()
 export class LeadHandlersService implements OnModuleInit {
   private readonly logger: LoggerService = new Logger(LeadHandlersService.name);
-  private readonly defaultTPlates = this.configService.getOrThrow('DEFAULT_PLATES');
-  private readonly googleEngineId = this.configService.getOrThrow('GOOGLE_ENGINE_ID');
-  private readonly googleSearchApiKey = this.configService.getOrThrow('GOOGLE_SEARCH_API');
-  private readonly redditClientId = this.configService.getOrThrow('REDDIT_CLIENT_ID');
-  private readonly redditClientSecret = this.configService.getOrThrow('REDDIT_CLIENT_SECRET');
+  private readonly defaultTPlates: string = this.configService.getOrThrow('DEFAULT_PLATES');
+  private readonly googleEngineId: string = this.configService.getOrThrow('GOOGLE_ENGINE_ID');
+  private readonly googleSearchApiKey: string = this.configService.getOrThrow('GOOGLE_SEARCH_API');
+  private readonly redditClientId: string = this.configService.getOrThrow('REDDIT_CLIENT_ID');
+  private readonly redditClientSecret: string = this.configService.getOrThrow('REDDIT_CLIENT_SECRET');
+  private readonly redditQueries: string[] = this.configService.getOrThrow('REDDIT_QUERIES').split(',');
 
   constructor(
     private readonly bot: BotService,
@@ -293,11 +294,9 @@ export class LeadHandlersService implements OnModuleInit {
   }
 
   async getRandomMeme(): Promise<string> {
-    const queries = ['anti_smoking', 'smoking', 'smoking_kills', 'vape', 'vaping'];
+    const randomIndex = Math.floor(Math.random() * this.redditQueries.length);
 
-    const randomIndex = Math.floor(Math.random() * queries.length);
-
-    const url = `https://oauth.reddit.com/r/memes/search.json?q=${queries[randomIndex]}&limit=250`;
+    const url = `https://oauth.reddit.com/r/memes/search.json?q=${this.redditQueries[randomIndex]}&limit=250`;
 
     const authToken = await this.getRedditAccessToken();
 

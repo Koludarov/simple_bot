@@ -17,4 +17,5 @@ export default (): any =>
     GOOGLE_ENGINE_ID: process.env.GOOGLE_ENGINE_ID,
     REDDIT_CLIENT_ID: process.env.REDDIT_CLIENT_ID,
     REDDIT_CLIENT_SECRET: process.env.REDDIT_CLIENT_SECRET,
+    REDDIT_QUERIES: process.env.REDDIT_QUERIES,
   }) as const;
