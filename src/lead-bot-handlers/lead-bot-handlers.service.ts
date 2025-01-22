@@ -24,6 +24,8 @@ export class LeadHandlersService implements OnModuleInit {
   private readonly defaultTPlates = this.configService.getOrThrow('DEFAULT_PLATES');
   private readonly googleEngineId = this.configService.getOrThrow('GOOGLE_ENGINE_ID');
   private readonly googleSearchApiKey = this.configService.getOrThrow('GOOGLE_SEARCH_API');
+  private readonly redditClientId = this.configService.getOrThrow('REDDIT_CLIENT_ID');
+  private readonly redditClientSecret = this.configService.getOrThrow('REDDIT_CLIENT_SECRET');
 
   constructor(
     private readonly bot: BotService,
@@ -254,7 +256,7 @@ export class LeadHandlersService implements OnModuleInit {
         snippet: item.snippet,
       }));
     } catch (error) {
-      this.logger.error('Ошибка при вызове Google Custom Search API:', error);
+      this.logger.error(`Ошибка при вызове Google Custom Search API: ${error.message}`);
       return [];
     }
   }
@@ -293,10 +295,19 @@ export class LeadHandlersService implements OnModuleInit {
 
     const randomIndex = Math.floor(Math.random() * queries.length);
 
-    const url = `https://www.reddit.com/r/memes/search.json?q=${queries[randomIndex]}&limit=250`;
+    const url = `https://oauth.reddit.com/r/memes/search.json?q=${queries[randomIndex]}&limit=250`;
+
+    const authToken = await this.getRedditAccessToken();
 
     try {
-      const response = await firstValueFrom(this.httpService.get(url));
+      const response = await firstValueFrom(
+        this.httpService.get(url, {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+            'User-Agent': 'meme_bot/1.0',
+          },
+        }),
+      );
 
       const posts = response.data.data.children;
 
@@ -309,7 +320,33 @@ export class LeadHandlersService implements OnModuleInit {
       const randomPost = imagePosts[Math.floor(Math.random() * imagePosts.length)];
       return randomPost.data.url;
     } catch (error) {
-      this.logger.error('Ошибка при получении мемов:', error);
+      this.logger.error(`Ошибка при получении мемов: ${error.message}`);
+    }
+  }
+
+  async getRedditAccessToken(): Promise<string> {
+    const auth = Buffer.from(`${this.redditClientId}:${this.redditClientSecret}`).toString('base64');
+
+    try {
+      const response = await firstValueFrom(
+        this.httpService.post(
+          'https://www.reddit.com/api/v1/access_token',
+          new URLSearchParams({
+            grant_type: 'client_credentials',
+          }),
+          {
+            headers: {
+              Authorization: `Basic ${auth}`,
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+          },
+        ),
+      );
+      console.log(response);
+      return response.data.access_token;
+    } catch (error) {
+      console.error('Ошибка получения токена доступа:', error.response?.data || error.message);
+      throw error;
     }
   }
 

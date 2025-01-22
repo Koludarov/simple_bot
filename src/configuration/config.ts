@@ -15,4 +15,6 @@ export default (): any =>
     DEFAULT_PLATES: process.env.DEFAULT_PLATES,
     GOOGLE_SEARCH_API: process.env.GOOGLE_SEARCH_API,
     GOOGLE_ENGINE_ID: process.env.GOOGLE_ENGINE_ID,
+    REDDIT_CLIENT_ID: process.env.REDDIT_CLIENT_ID,
+    REDDIT_CLIENT_SECRET: process.env.REDDIT_CLIENT_SECRET,
   }) as const;
