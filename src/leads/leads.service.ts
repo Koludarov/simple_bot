@@ -12,6 +12,10 @@ export class LeadsService {
     return await this.leadsProvider.getAllNonSmokers();
   }
 
+  async getAll(): Promise<ILead[]> {
+    return await this.leadsProvider.getAll();
+  }
+
   async create(telegramId: number, username?: string, firstname?: string, lastname?: string): Promise<ILead> {
     this.logger.log(`Starting working function create Lead: telegramId - ${telegramId}`);
     const lead = await this.leadsProvider.create(telegramId, username, firstname, lastname);

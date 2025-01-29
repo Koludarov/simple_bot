@@ -45,7 +45,7 @@ export class LeadHandlersService implements OnModuleInit {
     const leads = await this.leadsService.getAllNonSmokers();
     for (const lead of leads) {
       const daysWithoutSmoking = this.getDaysWithoutSmoking(lead);
-      const memUrl = await this.getRandomMeme();
+      const [memUrl] = await this.getRandomMemeWithTopic();
       if (daysWithoutSmoking > 365) {
         await this.bot.sendMessageAndKeyboard(lead.telegramId, flowMessages.moreThanYear(daysWithoutSmoking, memUrl));
         return;
@@ -53,6 +53,15 @@ export class LeadHandlersService implements OnModuleInit {
       const fact = await this.factsService.getByDay(daysWithoutSmoking);
       const decodedTask = Buffer.from(fact.task, 'base64').toString('utf-8');
       await this.bot.sendMessageAndKeyboard(lead.telegramId, `${decodedTask}\n\n<a href='${memUrl}'>мем</a>`);
+    }
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_10AM)
+  async sendDailyMem() {
+    const leads = await this.leadsService.getAll();
+    for (const { telegramId } of leads) {
+      const [memUrl, topic] = await this.getRandomMemeWithTopic();
+      await this.bot.sendMessageAndKeyboard(telegramId, `Опа <a href='${memUrl}'>мемчик</a>\n\nТема: ${topic}`);
     }
   }
 
@@ -89,31 +98,18 @@ export class LeadHandlersService implements OnModuleInit {
       return;
     }
 
-    if (text === commands.language) {
-      await this.sendChooseLanguageMessage(telegramId);
-      return;
-    }
+    if (text === commands.language) return await this.sendChooseLanguageMessage(telegramId);
 
-    if (text === commands.endSmoking) {
-      await this.handleEndSmoking(lead);
-      return;
-    }
+    if (text === commands.endSmoking) return this.handleEndSmoking(lead);
 
-    if (text === commands.progress) {
-      await this.handleProgress(lead);
-      return;
-    }
+    if (text === commands.progress) return this.handleProgress(lead);
 
-    if (text === commands.want_smoke) {
-      await this.handleWantSmokeCommand(lead);
-      return;
-    }
+    if (text === commands.want_smoke) return this.handleWantSmokeCommand(lead);
 
     if (text.startsWith(commands.money)) {
       const splitted = text.split(' ');
       const query = splitted[1] ? splitted.slice(1).join('') : undefined;
-      await this.handleMoney(lead, query);
-      return;
+      return await this.handleMoney(lead, query);
     }
 
     if (text.startsWith(commands.smokingMeme)) {
@@ -131,7 +127,6 @@ export class LeadHandlersService implements OnModuleInit {
       await this.bot.sendMessageAndKeyboard(telegramId, 'Mode Main');
       return;
     }
-    await this.bot.sendMessageAndKeyboard(telegramId, 'Text');
   }
 
   async handleCallbackQuery(data: string, lead: ILead, messageId: number): Promise<void> {
@@ -149,8 +144,8 @@ export class LeadHandlersService implements OnModuleInit {
   }
 
   async handleSmokingMeme({ telegramId }: ILead): Promise<void> {
-    const memUrl = await this.getRandomMeme();
-    await this.bot.sendMessageAndKeyboard(telegramId, `Получай\n<a href='${memUrl}'>мем</a>`);
+    const [memUrl, topic] = await this.getRandomMemeWithTopic();
+    await this.bot.sendMessageAndKeyboard(telegramId, `Получай\n<a href='${memUrl}'>мем</a>\n\nТема: ${topic}`);
   }
 
   // TODO: Need to upgrade headers
@@ -214,7 +209,7 @@ export class LeadHandlersService implements OnModuleInit {
       return;
     }
 
-    const memUrl = await this.getRandomMeme();
+    const [memUrl] = await this.getRandomMemeWithTopic();
     if (daysWithoutSmoking > 365) {
       await this.bot.sendMessageAndKeyboard(lead.telegramId, flowMessages.moreThanYear(daysWithoutSmoking, memUrl));
       return;
@@ -300,7 +295,7 @@ export class LeadHandlersService implements OnModuleInit {
     await this.bot.sendMessageAndKeyboard(lead.telegramId, `${flowMessages.countDesire(count, chartUrl)}`);
   }
 
-  async getRandomMeme(): Promise<string> {
+  async getRandomMemeWithTopic(): Promise<Array<string>> {
     const randomIndex = Math.floor(Math.random() * this.redditQueries.length);
     const randomQuery = this.redditQueries[randomIndex];
     this.logger.log(`Mem query: ${randomQuery}`);
@@ -328,7 +323,7 @@ export class LeadHandlersService implements OnModuleInit {
       }
 
       const randomPost = imagePosts[Math.floor(Math.random() * imagePosts.length)];
-      return randomPost.data.url;
+      return [randomPost.data.url, randomQuery];
     } catch (error) {
       this.logger.error(`Error while fetching mem : ${error.message}`);
     }
