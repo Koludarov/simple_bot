@@ -5,7 +5,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { InlineKeyboardMarkup, Message, PhotoSize } from 'node-telegram-bot-api';
 import { firstValueFrom } from 'rxjs';
 
-import { dailySmokingPrice, flowMessages, messages } from './lead-bot-handlers.constants';
+import { dailySmokingPrice, flowMessages } from './lead-bot-handlers.constants';
 import { commands } from '../bot/bot.constants';
 import { BotService } from '../bot/bot.service';
 import { TelegramState } from '../common/telegram-states';

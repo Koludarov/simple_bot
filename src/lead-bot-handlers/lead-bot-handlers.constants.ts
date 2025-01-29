@@ -35,21 +35,21 @@ export const flowMessages = {
   moreThanYear,
 };
 
-const errorParkingInput = {
-  ru: '<b>Необходимо отправить в формате:</b> <i>/parking NS000AA</i>',
-  en: '<b>Need to send command formatted as:</b> <i>/parking NS000AA</i>',
-};
+// const errorParkingInput = {
+//   ru: '<b>Необходимо отправить в формате:</b> <i>/parking NS000AA</i>',
+//   en: '<b>Need to send command formatted as:</b> <i>/parking NS000AA</i>',
+// };
 
-const resultPositiveParking = {
-  ru: '<b>Билетов на парковку нет</b>',
-  en: '<b>No parking tickets was found</b>',
-};
+// const resultPositiveParking = {
+//   ru: '<b>Билетов на парковку нет</b>',
+//   en: '<b>No parking tickets was found</b>',
+// };
 
-const resultNegativeParking = {
-  ru: (data: string) => `<b>Список билетов за парковку (кол-во - ${data.length}):</b>\n${JSON.stringify(data)}`,
-  en: (data: string) => `<b>List of parking tickets (amount - ${data.length}):</b>\n${JSON.stringify(data)}`,
-};
+// const resultNegativeParking = {
+//   ru: (data: string) => `<b>Список билетов за парковку (кол-во - ${data.length}):</b>\n${JSON.stringify(data)}`,
+//   en: (data: string) => `<b>List of parking tickets (amount - ${data.length}):</b>\n${JSON.stringify(data)}`,
+// };
 
-export const messages = { errorParkingInput, resultNegativeParking, resultPositiveParking };
+// export const messages = { errorParkingInput, resultNegativeParking, resultPositiveParking };
 
 export const dailySmokingPrice = 650;
