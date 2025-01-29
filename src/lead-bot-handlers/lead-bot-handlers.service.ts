@@ -152,26 +152,26 @@ export class LeadHandlersService implements OnModuleInit {
     const memUrl = await this.getRandomMeme();
     await this.bot.sendMessageAndKeyboard(telegramId, `haha\n\n<a href='${memUrl}'>мем</a>`);
 
-    const plates = inputPlates ? inputPlates : this.defaultTPlates;
-    try {
-      const { data } = await firstValueFrom(
-        this.httpService.get(`https://portal.parkingns.rs/portal/auth/checkPPK?platePr=${plates}`, {
-          headers: {
-            'User-Agent':
-              'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-            Accept: 'application/json, text/plain, */*',
-            Connection: 'keep-alive',
-            Host: 'portal.parkingns.rs',
-          },
-        }),
-      );
-      const answer = data.length ? messages.resultNegativeParking[geo](data) : messages.resultPositiveParking[geo];
+    // const plates = inputPlates ? inputPlates : this.defaultTPlates;
+    // try {
+    //   const { data } = await firstValueFrom(
+    //     this.httpService.get(`https://portal.parkingns.rs/portal/auth/checkPPK?platePr=${plates}`, {
+    //       headers: {
+    //         'User-Agent':
+    //           'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+    //         Accept: 'application/json, text/plain, */*',
+    //         Connection: 'keep-alive',
+    //         Host: 'portal.parkingns.rs',
+    //       },
+    //     }),
+    //   );
+    //   const answer = data.length ? messages.resultNegativeParking[geo](data) : messages.resultPositiveParking[geo];
 
-      await this.bot.sendMessageAndKeyboard(telegramId, answer);
-    } catch (error) {
-      this.logger.log(`Error sending request: ${error}`);
-    }
-    return;
+    //   await this.bot.sendMessageAndKeyboard(telegramId, answer);
+    // } catch (error) {
+    //   this.logger.log(`Error sending request: ${error}`);
+    // }
+    // return;
   }
 
   private async sendPhotoMessage(
