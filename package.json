@@ -4,7 +4,7 @@
   "description": "",
   "author": "Artem Koludarov",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "Apache License",
   "scripts": {
     "build": "nest build",
     "format": "prettier \"src/**/*.ts\" ",
