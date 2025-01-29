@@ -210,6 +210,7 @@ export class LeadHandlersService implements OnModuleInit {
   private async handleEndSmoking(lead: ILead): Promise<void> {
     const { telegramId } = lead;
     lead.smokingEndDate = new Date();
+    lead.moneySaved = 0;
     await this.leadsService.updateByTelegramId(lead);
     await this.bot.sendMessageAndKeyboard(telegramId, flowMessages.endSmokingMessage);
   }
