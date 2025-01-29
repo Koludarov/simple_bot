@@ -295,8 +295,10 @@ export class LeadHandlersService implements OnModuleInit {
 
   async getRandomMeme(): Promise<string> {
     const randomIndex = Math.floor(Math.random() * this.redditQueries.length);
+    const randomQuery = this.redditQueries[randomIndex];
+    this.logger.log(`Mem query: ${randomQuery}`);
 
-    const url = `https://oauth.reddit.com/r/memes/search.json?q=${this.redditQueries[randomIndex]}&limit=250`;
+    const url = `https://oauth.reddit.com/r/memes/search.json?q=${randomQuery}&limit=250`;
 
     const authToken = await this.getRedditAccessToken();
 
