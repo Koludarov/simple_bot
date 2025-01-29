@@ -1,7 +1,7 @@
 const RANDOM = 'Random photo';
 const LANGUAGE = 'Change language';
 // const PARKING = 'Enter /parking BG007JB to check NS ticket';
-const PARKING = 'Smoking meme';
+const SMOKING_MEME = 'Smoking meme';
 const END_SMOKING = 'Begin your way to stop smoking';
 const PROGRESS = 'Look to your progress';
 const MONEY = 'How much money did you save';
@@ -9,7 +9,7 @@ const WANT_SMOKE = 'Desire of smoke per day inc';
 
 export const sideMenu = {
   RANDOM,
-  PARKING,
+  SMOKING_MEME,
   LANGUAGE,
   END_SMOKING,
   PROGRESS,
@@ -17,7 +17,8 @@ export const sideMenu = {
   WANT_SMOKE,
 };
 
-const parking = '/meme';
+// const parking = '/parking';
+const smokingMeme = '/meme';
 const random = '/random';
 const language = '/language';
 const endSmoking = '/end_smoking';
@@ -26,7 +27,7 @@ const money = '/money';
 const want_smoke = '/want_smoke';
 
 export const commands = {
-  parking,
+  smokingMeme,
   random,
   language,
   endSmoking,
