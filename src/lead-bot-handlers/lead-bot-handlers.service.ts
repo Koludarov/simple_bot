@@ -45,13 +45,20 @@ export class LeadHandlersService implements OnModuleInit {
     const leads = await this.leadsService.getAllNonSmokers();
     for (const lead of leads) {
       const daysWithoutSmoking = this.getDaysWithoutSmoking(lead);
+
+      lead.moneySaved = (lead.moneySaved || 0) + dailySmokingPrice;
+
+      await this.leadsService.updateByTelegramId(lead);
       const [memUrl] = await this.getRandomMemeWithTopic();
+
       if (daysWithoutSmoking > 365) {
         await this.bot.sendMessageAndKeyboard(lead.telegramId, flowMessages.moreThanYear(daysWithoutSmoking, memUrl));
         return;
       }
+
       const fact = await this.factsService.getByDay(daysWithoutSmoking);
       const decodedTask = Buffer.from(fact.task, 'base64').toString('utf-8');
+
       await this.bot.sendMessageAndKeyboard(lead.telegramId, `${decodedTask}\n\n<a href='${memUrl}'>мем</a>`);
     }
   }
@@ -59,8 +66,10 @@ export class LeadHandlersService implements OnModuleInit {
   @Cron(CronExpression.EVERY_DAY_AT_10AM)
   async sendDailyMem() {
     const leads = await this.leadsService.getAll();
+
     for (const { telegramId } of leads) {
       const [memUrl, topic] = await this.getRandomMemeWithTopic();
+
       await this.bot.sendMessageAndKeyboard(telegramId, `Опа <a href='${memUrl}'>мемчик</a>\n\nТема: ${topic}`);
     }
   }
@@ -105,6 +114,11 @@ export class LeadHandlersService implements OnModuleInit {
     if (text === commands.progress) return this.handleProgress(lead);
 
     if (text === commands.want_smoke) return this.handleWantSmokeCommand(lead);
+
+    if (text.startsWith(commands.spend)) {
+      const spending = parseInt(text.split(' ')[1]);
+      return await this.handleSpendCommand(lead, spending);
+    }
 
     if (text.startsWith(commands.money)) {
       const splitted = text.split(' ');
@@ -216,29 +230,32 @@ export class LeadHandlersService implements OnModuleInit {
     }
 
     await this.bot.sendMessageAndKeyboard(telegramId, flowMessages.progressMessage(daysWithoutSmoking));
+
     if (daysWithoutSmoking > 0) {
       const encodedFact = await this.factsService.getByDay(daysWithoutSmoking);
       const decodedFact = Buffer.from(encodedFact.message, 'base64').toString('utf-8');
       const chartUrl = generateChartUrl(daysWithoutSmoking);
+
       await this.bot.sendMessageAndKeyboard(telegramId, flowMessages.progressFact(decodedFact, chartUrl));
     }
   }
 
   private async handleMoney(lead: ILead, query: string = 'buy smart devices'): Promise<void> {
-    const { telegramId } = lead;
+    const { telegramId, moneySaved } = lead;
     const daysWithoutSmoking = this.getDaysWithoutSmoking(lead);
+
     if (daysWithoutSmoking === undefined) {
       await this.bot.sendMessageAndKeyboard(telegramId, flowMessages.notStartedMessage);
       return;
     }
-    const moneySaved = daysWithoutSmoking * dailySmokingPrice;
-    const products = await this.searchProductsOnGoogle(query, moneySaved);
 
+    const products = await this.searchProductsOnGoogle(query, moneySaved);
     let response = flowMessages.moneyMessage(moneySaved);
 
     products.forEach((product) => {
       response += `- <a href='${product.link}'>${product.title}</a>\n  ${product.snippet}\n\n`;
     });
+
     await this.bot.sendMessageAndKeyboard(telegramId, response);
   }
 
@@ -293,6 +310,25 @@ export class LeadHandlersService implements OnModuleInit {
     const count = lead.desireSmokingInc[today];
     const chartUrl = generateSmokingDesireChartUrl(lead.desireSmokingInc);
     await this.bot.sendMessageAndKeyboard(lead.telegramId, `${flowMessages.countDesire(count, chartUrl)}`);
+  }
+
+  async handleSpendCommand(lead: ILead, spending: number): Promise<void> {
+    if (!spending) {
+      await this.bot.sendMessageAndKeyboard(lead.telegramId, flowMessages.notAvailableAmount);
+      return;
+    }
+
+    const daysWithoutSmoking = this.getDaysWithoutSmoking(lead);
+    if (daysWithoutSmoking === undefined) {
+      await this.bot.sendMessageAndKeyboard(lead.telegramId, flowMessages.notStartedMessage);
+      return;
+    }
+
+    lead.moneySaved = (lead.moneySaved || 0) - spending;
+
+    await this.leadsService.updateByTelegramId(lead);
+
+    await this.bot.sendMessageAndKeyboard(lead.telegramId, `${flowMessages.newMoneyAmount(lead.moneySaved)}`);
   }
 
   async getRandomMemeWithTopic(): Promise<Array<string>> {

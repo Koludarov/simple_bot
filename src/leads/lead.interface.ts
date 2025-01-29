@@ -15,6 +15,7 @@ export interface ILead {
   lastname?: string;
   smokingEndDate?: Date;
   desireSmokingInc: DesireOfSmoke;
+  moneySaved?: number;
   createdAt?: Date;
   updatedAt?: Date;
 }

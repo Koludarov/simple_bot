@@ -33,6 +33,9 @@ export class Lead implements ILead {
   @Prop()
   smokingEndDate?: Date;
 
+  @Prop()
+  moneySaved?: number;
+
   @Prop({ type: Object, default: {} })
   desireSmokingInc: DesireOfSmoke;
 

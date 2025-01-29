@@ -15,6 +15,10 @@ const notStartedMessage = 'Для начала используй команду
 
 const endSmokingMessage = `Отлично! Мы будем отслеживать твой прогресс.\nИспользуй /progress и /money для информации`;
 
+const notAvailableAmount = `Введена некорректная сумма`;
+
+const newMoneyAmount = (moneySaved: number) => `Теперь у тебя ${moneySaved} динар секономлено`;
+
 const countDesire = (count: number, chartUrl: string) =>
   `Сегодня желание закурить появилось ${count} раз(а). Ты справляешься, продолжай бороться!\n\n<a href='${chartUrl}}'>Рейтинг</a>`;
 
@@ -33,6 +37,8 @@ export const flowMessages = {
   countDesire,
   progressFact,
   moreThanYear,
+  notAvailableAmount,
+  newMoneyAmount,
 };
 
 // const errorParkingInput = {

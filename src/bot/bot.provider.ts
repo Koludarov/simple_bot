@@ -28,6 +28,7 @@ export class BotProvider implements OnModuleInit {
       { command: commands.endSmoking, description: sideMenu.END_SMOKING },
       { command: commands.random, description: sideMenu.RANDOM },
       { command: commands.smokingMeme, description: sideMenu.SMOKING_MEME },
+      { command: commands.spend, description: sideMenu.SPEND },
       { command: commands.language, description: sideMenu.LANGUAGE },
     ]);
   }
