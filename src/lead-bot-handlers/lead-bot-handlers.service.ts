@@ -82,22 +82,6 @@ export class LeadHandlersService implements OnModuleInit {
     this.logger.log(`Ending to send daily memes`);
   }
 
-  // Delete after Test is finished
-  @Cron(CronExpression.EVERY_MINUTE)
-  async sendTestCronMeme() {
-    const leads = await this.leadsService.getAll();
-
-    this.logger.log(`Starting to send daily memes, leads amount: ${leads.length}`);
-
-    for (const { telegramId } of leads) {
-      const [memUrl, topic] = await this.getRandomMemeWithTopic();
-
-      await this.bot.sendMessageAndKeyboard(telegramId, `Опа <a href='${memUrl}'>мемчик</a>\n\nТема: ${topic}`);
-    }
-
-    this.logger.log(`Ending to send daily memes`);
-  }
-
   async handleStart(telegramId: number, username?: string, firstname?: string, lastname?: string) {
     await this.leadsService.create(telegramId, username, firstname, lastname);
     await this.bot.sendMessageAndKeyboard(telegramId, flowMessages.greeting(username));
