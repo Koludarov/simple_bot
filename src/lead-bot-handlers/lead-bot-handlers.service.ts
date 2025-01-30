@@ -43,6 +43,8 @@ export class LeadHandlersService implements OnModuleInit {
   @Cron(CronExpression.EVERY_DAY_AT_9AM)
   async sendDailyNote() {
     const leads = await this.leadsService.getAllNonSmokers();
+
+    this.logger.log(`Starting to send daily notes, leads amount: ${leads.length}`);
     for (const lead of leads) {
       const daysWithoutSmoking = this.getDaysWithoutSmoking(lead);
 
@@ -61,17 +63,39 @@ export class LeadHandlersService implements OnModuleInit {
 
       await this.bot.sendMessageAndKeyboard(lead.telegramId, `${decodedTask}\n\n<a href='${memUrl}'>мем</a>`);
     }
+
+    this.logger.log(`Ending to send daily notes`);
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_10AM)
   async sendDailyMem() {
     const leads = await this.leadsService.getAll();
 
+    this.logger.log(`Starting to send daily memes, leads amount: ${leads.length}`);
+
     for (const { telegramId } of leads) {
       const [memUrl, topic] = await this.getRandomMemeWithTopic();
 
       await this.bot.sendMessageAndKeyboard(telegramId, `Опа <a href='${memUrl}'>мемчик</a>\n\nТема: ${topic}`);
     }
+
+    this.logger.log(`Ending to send daily memes`);
+  }
+
+  // Delete after Test is finished
+  @Cron(CronExpression.EVERY_MINUTE)
+  async sendTestCronMeme() {
+    const leads = await this.leadsService.getAll();
+
+    this.logger.log(`Starting to send daily memes, leads amount: ${leads.length}`);
+
+    for (const { telegramId } of leads) {
+      const [memUrl, topic] = await this.getRandomMemeWithTopic();
+
+      await this.bot.sendMessageAndKeyboard(telegramId, `Опа <a href='${memUrl}'>мемчик</a>\n\nТема: ${topic}`);
+    }
+
+    this.logger.log(`Ending to send daily memes`);
   }
 
   async handleStart(telegramId: number, username?: string, firstname?: string, lastname?: string) {
